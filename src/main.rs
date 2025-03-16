@@ -26,6 +26,7 @@ fn markdown_to_html(filename: &str, markdown: &str) -> String {
 type Err = Box<dyn std::error::Error>;
 
 fn main() -> Result<(), Err> {
+    fs::create_dir("./output")?;
     for file in fs::read_dir("./articles")? {
         let file = file?;
         println!("processing: {:?}", file.file_name());
