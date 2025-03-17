@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+  </head>
+  <body>
+    <main>
+      <nav>
+        <div class="navigation">
+          <a href="/">Home</a>
+        </div>
+        <div class="mode-switcher">
+          <label for="mode-switcher">Color:</label>
+          <select id="mode-switcher">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </nav>
+      <div class="content">
+        {{ body | safe }}
+      </div>
+    </main>
+  </body>
+</html>

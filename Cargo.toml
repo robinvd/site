@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+askama = {git= "https://github.com/askama-rs/askama", commit="3cf5d85"}
 pulldown-cmark = "0.13.0"
