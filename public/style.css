@@ -29,14 +29,6 @@
   --statusline3: light-dark(#e66868, #e67e80);
 }
 
-html:has(#mode-switcher [value="light"]:checked) {
-  color-scheme: light;
-}
-
-html:has(#mode-switcher [value="dark"]:checked) {
-  color-scheme: dark;
-}
-
 body {
   display: flex;
   flex-direction: column;
