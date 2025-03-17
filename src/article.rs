@@ -1,4 +1,5 @@
 use askama::Template;
+use pulldown_cmark::{Event, HeadingLevel, Tag};
 
 #[derive(Template)]
 #[template(path = "article.html")]
@@ -7,7 +8,24 @@ struct ArticleTemplate<'a> {
     body: &'a str,
 }
 
-pub fn markdown_to_html(filename: &str, markdown: &str) -> String {
+fn get_markdown_title(markdown: &str) -> Option<String> {
+    let mut iter = pulldown_cmark::Parser::new(markdown);
+    while let Some(event) = iter.next() {
+        match event {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H1,
+                ..
+            }) => match iter.next() {
+                Some(Event::Text(s)) => return Some(s.into()),
+                _ => return None,
+            },
+            _ => {}
+        }
+    }
+    None
+}
+
+pub fn markdown_to_html(markdown: &str) -> String {
     // Create parser with example Markdown text.
     let parser = pulldown_cmark::Parser::new(markdown);
 
@@ -15,14 +33,10 @@ pub fn markdown_to_html(filename: &str, markdown: &str) -> String {
     let mut html_output = String::new();
     pulldown_cmark::html::push_html(&mut html_output, parser);
 
-    let title = filename
-        .splitn(2, "_")
-        .skip(1)
-        .next()
-        .expect("filename has no _");
+    let title = get_markdown_title(markdown).expect("no h1 header in article");
 
     let html_output = ArticleTemplate {
-        title,
+        title: &title,
         body: &html_output,
     }
     .render()

@@ -16,7 +16,7 @@ fn main() -> Result<(), Err> {
         let path = file.path();
         if file.metadata()?.is_file() && path.extension() == Some(OsStr::new("md")) {}
         let md_text = fs::read_to_string(file.path())?;
-        let html_text = markdown_to_html(&path.file_stem().unwrap().to_string_lossy(), &md_text);
+        let html_text = markdown_to_html(&md_text);
         let mut output_path = PathBuf::new();
         output_path.push("./output/articles");
         output_path.push(path.file_name().unwrap());
