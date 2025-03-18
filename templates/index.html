@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ title | title }}</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Robins blog</title>
+    <link rel="stylesheet" href="./style.css">
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
   </head>
   <body>
     <main>
       <nav>
         <div class="navigation">
-          <a href="../">Home</a>
+          <a href="./">Home</a>
         </div>
         <div class="mode-switcher">
           <label for="mode-switcher">Color:</label>
@@ -24,7 +24,13 @@
         </div>
       </nav>
       <div class="content">
-        {{ body | safe }}
+        <ul>
+          {% for article in articles %}
+            <li>
+              <a href="./articles/{{article.1}}">{{article.0}}</a>
+            </li>
+          {% endfor %}
+        </ul>
       </div>
     </main>
   </body>

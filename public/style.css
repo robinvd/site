@@ -49,12 +49,44 @@ body main {
   color: var(--bg);
 }
 
-.content a:link {
-  color: var(--blue);
+.content a {
+  font-weight: bold;
+  border-bottom: 3px solid var(--grey1);
+  color: inherit;
+  text-decoration: none;
 }
 
-.content a:visited {
+.content a:hover {
+  border-bottom: 3px solid var(--fg);
+}
+
+.content pre {
+  background-color: var(--bg1);
+  padding: 1em;
+}
+
+.content code .identifier {
+  color: var(--fg);
+}
+
+.content code .keyword {
+  color: var(--red);
+}
+
+.content code .function,.function-builtin,.constructor {
+  color: var(--green);
+}
+
+.content code .number {
   color: var(--purple);
+}
+
+.content code .string {
+  color: var(--aqua);
+}
+
+.content code .type {
+  color: var(--yellow);
 }
 
 nav {
@@ -78,3 +110,4 @@ nav a:hover {
 nav a:active { 
   text-decoration: none; 
 }
+
