@@ -27,21 +27,12 @@
         <ul>
           {% for article in articles %}
             <li>
-              <a href="./articles/{{article.1}}">{{article.0}}</a>
+              <a href="./articles/{{article.1}}" onmouseover="prefetch(this)">{{article.0}}</a>
             </li>
           {% endfor %}
         </ul>
       </div>
     </main>
   </body>
-  <script>
-    const html = document.querySelector('html');
-    const colorSelector = document.querySelector('#mode-switcher');
-    function switchMode(mode) {
-      localStorage.setItem("mode", mode);
-      html.style.setProperty("color-scheme", mode === "auto" ? "light dark" : mode);
-      colorSelector.value = mode
-    }
-    switchMode(localStorage.getItem("mode") || "auto");
-  </script>
+  <script src="./code.js"></script>
 </html>

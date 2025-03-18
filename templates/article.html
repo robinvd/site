@@ -28,14 +28,5 @@
       </div>
     </main>
   </body>
-  <script>
-    const html = document.querySelector('html');
-    const colorSelector = document.querySelector('#mode-switcher');
-    function switchMode(mode) {
-      localStorage.setItem("mode", mode);
-      html.style.setProperty("color-scheme", mode === "auto" ? "light dark" : mode);
-      colorSelector.value = mode
-    }
-    switchMode(localStorage.getItem("mode") || "auto");
-  </script>
+  <script src="../code.js"></script>
 </html>
