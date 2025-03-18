@@ -14,7 +14,7 @@ function prefetch(target) {
       return
     }
   }
-  link.rel = 'prefetch';
+  link.rel = 'preload';
   link.href = href;
   document.head.appendChild(link);
 }
