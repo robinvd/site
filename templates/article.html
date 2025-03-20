@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ title | title }}</title>
+    <title>{{ metadata.title | title }}</title>
     <link rel="stylesheet" href="../style.css">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
   </head>
   <body>
     <main>
-      <nav>
+      <nav class="top-nav">
         <div class="navigation">
           <a href="../">Home</a>
         </div>
@@ -24,7 +24,20 @@
         </div>
       </nav>
       <div class="content">
+        <h1>{{ metadata.title | title }}</h1>
+        <div class="meta">
+          <time>
+            {% if let Some(date) = metadata.publish_date %}
+              {{ date.strftime("%B %d, %Y") }}
+            {% endif %}
+          </time>
+        </div>
         {{ body | safe }}
+        <nav class="bot-nav">
+          {% for tag in metadata.tags %}
+            <a href="../tags/{{ tag }}.html">{{ tag }}</a>
+          {% endfor %}
+        </nav>
       </div>
     </main>
   </body>

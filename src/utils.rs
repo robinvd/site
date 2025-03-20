@@ -1,7 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn copy<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(), std::io::Error> {
+use anyhow::{Context, Error};
+
+pub fn copy<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(), Error> {
     let mut stack = Vec::new();
     stack.push(PathBuf::from(from.as_ref()));
 
@@ -19,11 +21,16 @@ pub fn copy<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(), std::i
             output_root.join(&src)
         };
         if fs::metadata(&dest).is_err() {
-            fs::create_dir_all(&dest)?;
+            fs::create_dir_all(&dest)
+                .with_context(|| format!("could not create directory: {:?}", dest))?;
         }
 
-        for entry in fs::read_dir(working_path)? {
-            let entry = entry?;
+        for entry in fs::read_dir(&working_path)
+            .with_context(|| format!("could not read directory: {:?}", working_path))?
+        {
+            let entry = entry.with_context(|| {
+                format!("could not read entry in directory: {:?}", working_path)
+            })?;
             let path = entry.path();
             if path.is_dir() {
                 stack.push(path);
@@ -31,7 +38,9 @@ pub fn copy<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(), std::i
                 match path.file_name() {
                     Some(filename) => {
                         let dest_path = dest.join(filename);
-                        fs::copy(&path, &dest_path)?;
+                        fs::copy(&path, &dest_path).with_context(|| {
+                            format!("could not copy file from {:?} to {:?}", path, dest_path)
+                        })?;
                     }
                     None => {
                         println!("failed: {:?}", path);

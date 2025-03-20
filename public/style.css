@@ -40,6 +40,7 @@ body {
     max-width: 800px;
     color: var(--fg);
     padding: 0 0 10em 0;
+    width: 100%;
   }
 }
 
@@ -57,14 +58,39 @@ a {
 .content {
   border-bottom: 3px solid var(--grey1);
 
+  .meta {
+    padding-bottom: 1.5rem;
+  }
+
+  div.cat_quote {
+    display: flex;
+    > img {
+      object-fit: scale-down;
+      width: 2.7rem;
+      height: auto;
+    }
+  }
+  h1, h2, h3, h4, h5 {
+    padding-top: 1rem;
+  }
+
   blockquote {
     border-left: 3px solid var(--grey1);
-    color: var(--midGrey);
+    color: var(--grey0);
     margin: 0;
     padding-left: 1em;
     &:hover {
       border-left: 3px solid var(--red);
     }
+  }
+  time {
+    color: var(--grey0);
+    font-weight: bold;
+  }
+  p, ul {
+    letter-spacing: .9px;
+    line-height: 1.6em;
+    font-size: 16px;
   }
   p::selection {
     background-color: var(--red);
@@ -74,11 +100,18 @@ a {
 
 .content {
   pre {
-    background-color: var(--bg1);
     padding: 1em;
+    background-color: var(--bg1);
+  }
+
+  pre code {
+    color: var(--fg);
   }
 
   code {
+    background-color: var(--bg1);
+    color: var(--green);
+
     .identifier {
       color: var(--fg);
     }
@@ -100,9 +133,14 @@ a {
   }
 }
 
-nav {
+nav.top-nav {
   flex-direction: row;
   display: flex;
   justify-content: space-between;
+}
+
+nav.bot-nav {
+  padding-bottom: 1.5rem;
+  padding-top: 1.5rem;
 }
 
