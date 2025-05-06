@@ -1,7 +1,31 @@
+use std::any::{Any, TypeId};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Error};
+
+// pub struct TypeMap<T: Any> {
+//     map: HashMap<TypeId, Box<dyn Any>>,
+// }
+
+// impl TypeMap {
+//     pub fn new() -> Self {
+//         Self {
+//             map: HashMap::new(),
+//         }
+//     }
+
+//     pub fn insert<T: Any + 'static>(&mut self, item: T) {
+//         self.map.insert(TypeId::of::<T>(), Box::new(item));
+//     }
+
+//     pub fn get<T: Any + 'static>(&self) -> Option<&T> {
+//         self.map
+//             .get(&TypeId::of::<T>())
+//             .map(|item| item.downcast_ref().expect("typemap internal error"))
+//     }
+// }
 
 pub fn copy<U: AsRef<Path>, V: AsRef<Path>>(from: U, to: V) -> Result<(), Error> {
     let mut stack = Vec::new();

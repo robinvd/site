@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{ metadata.title | title }}</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/public/style.css">
   </head>
   <body>
     <main>
       <nav class="top-nav">
         <div class="navigation">
-          <a href="../">Home</a>
+          <a href="/">Home</a>
         </div>
         <div class="mode-switcher">
           <label for="mode-switcher">Color:</label>
@@ -27,19 +26,19 @@
         <h1>{{ metadata.title | title }}</h1>
         <div class="meta">
           <time>
-            {% if let Some(date) = metadata.publish_date %}
+            {%- if let Some(date) = metadata.publish_date %}
               {{ date.strftime("%B %d, %Y") }}
-            {% endif %}
+            {%- endif %}
           </time>
         </div>
         {{ body | safe }}
         <nav class="bot-nav">
           {% for tag in metadata.tags %}
-            <a href="../tags/{{ tag }}.html">{{ tag }}</a>
+            <a href="/tags/{{ tag }}.html">{{ tag }}</a>
           {% endfor %}
         </nav>
       </div>
     </main>
   </body>
-  <script src="../code.js"></script>
+  <script src="/public/code.js"></script>
 </html>

@@ -1,14 +1,9 @@
 use askama::Template;
-use pulldown_cmark::{CodeBlockKind, CowStr, Event, HeadingLevel, Tag, TagEnd};
+use pulldown_cmark::{CodeBlockKind, CowStr, Event, Tag, TagEnd};
 use serde::Deserialize;
-use std::io::Write as _;
+use std::{io::Write as _, path::PathBuf};
 
-#[derive(Template)]
-#[template(path = "article.html")]
-struct ArticleTemplate<'a> {
-    body: &'a str,
-    metadata: &'a Metadata,
-}
+use crate::templates::article::ArticleTemplate;
 
 const HIGHLIGHT_NAMES: &'static [&'static str] = &[
     "attribute",
@@ -192,8 +187,10 @@ fn handle_code_block<'a>(
     panic!("no end codeblock")
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Clone, PartialEq, Eq)]
 pub struct Metadata {
+    #[serde(default)]
+    pub path: PathBuf,
     pub tags: Vec<String>,
     #[serde(default)]
     pub title: String,
@@ -205,7 +202,6 @@ fn postprocess_events<'a>(mut events: &'a [Event<'a>]) -> (Vec<Event<'a>>, Metad
     let mut stack: Vec<(Tag<'a>, Option<Box<dyn FnOnce() -> Vec<Event<'a>>>>)> = Vec::new();
     let mut metadata = Metadata::default();
     while events.len() > 0 {
-        println!("e: {:?}", events[0]);
         match events {
             [Event::Start(Tag::MetadataBlock(_)), ..] => {
                 let mut metadata_text = String::new();
@@ -244,8 +240,8 @@ fn postprocess_events<'a>(mut events: &'a [Event<'a>]) -> (Vec<Event<'a>>, Metad
                 let (quote_type, quote_rest) = text.split_once(" ").unwrap_or((&text, ""));
                 let quote_type = quote_type.strip_prefix("!").unwrap();
                 let img_src = match quote_type {
-                    "bumi_question" => "../bumi_question.png",
-                    "bumi_leaving" => "../bumi_leaving.png",
+                    "bumi_question" => "/public/bumi_question.png",
+                    "bumi_leaving" => "/public/bumi_leaving.png",
                     ty => panic!("unknown quote type: {}", ty),
                 };
                 new.push(s_quote.clone());
@@ -268,7 +264,7 @@ fn postprocess_events<'a>(mut events: &'a [Event<'a>]) -> (Vec<Event<'a>>, Metad
                 assert_eq!(start.to_end(), *tag);
                 new.push(event.clone());
                 if let Some(callback) = callback {
-                    new.extend(dbg!(callback()));
+                    new.extend(callback());
                 }
                 events = rest
             }
@@ -282,8 +278,48 @@ fn postprocess_events<'a>(mut events: &'a [Event<'a>]) -> (Vec<Event<'a>>, Metad
     (new, metadata)
 }
 
-pub fn render_article(markdown: &str) -> (String, Metadata) {
-    // Create parser with example Markdown text.
+pub fn render_article_plaintext(markdown: &str) -> (String, Metadata) {
+    let parser: pulldown_cmark::Parser = pulldown_cmark::Parser::new_with_broken_link_callback(
+        markdown,
+        pulldown_cmark::Options::ENABLE_TABLES
+            | pulldown_cmark::Options::ENABLE_STRIKETHROUGH
+            | pulldown_cmark::Options::ENABLE_TASKLISTS
+            | pulldown_cmark::Options::ENABLE_SMART_PUNCTUATION
+            | pulldown_cmark::Options::ENABLE_YAML_STYLE_METADATA_BLOCKS
+            | pulldown_cmark::Options::ENABLE_WIKILINKS,
+        None,
+    );
+    let all_events: Vec<_> = parser.collect();
+    let (token_stream, metadata) = postprocess_events(&all_events);
+    let mut output = String::new();
+    for event in token_stream {
+        match event {
+            Event::Start(_) => {}
+            Event::End(_) => {
+                output.push_str("\n");
+            }
+            Event::Text(cow_str) => {
+                output.push_str(&cow_str);
+            }
+            Event::Code(cow_str) => {
+                output.push_str("\n");
+                output.push_str(&cow_str);
+                output.push_str("\n");
+            }
+            Event::Html(_) | Event::InlineHtml(_) => {}
+            Event::SoftBreak => output.push_str(" "),
+            Event::HardBreak => output.push_str("\n"),
+            Event::TaskListMarker(_) => {}
+            e => panic!("TODO handle: {e:?}"),
+        }
+    }
+
+    let output = output.replace("\n\n", "\n");
+
+    (output, metadata)
+}
+
+pub fn render_article(markdown: &str, path: PathBuf) -> (String, Metadata) {
     let parser: pulldown_cmark::Parser = pulldown_cmark::Parser::new_with_broken_link_callback(
         markdown,
         pulldown_cmark::Options::ENABLE_TABLES
@@ -296,9 +332,6 @@ pub fn render_article(markdown: &str) -> (String, Metadata) {
     );
     let all_events: Vec<_> = parser.collect();
     let (token_stream, mut metadata) = postprocess_events(&all_events);
-    // let token_stream = parser;
-
-    // Write to a new String buffer.
     let mut html_output = String::new();
     pulldown_cmark::html::push_html(&mut html_output, token_stream.into_iter());
 
@@ -308,6 +341,8 @@ pub fn render_article(markdown: &str) -> (String, Metadata) {
     }
     .render()
     .unwrap();
+
+    metadata.path = path;
 
     (html_output, metadata)
 }

@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Robins blog</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/public/style.css">
   </head>
   <body>
     <main>
       <nav class="top-nav">
         <div class="navigation">
-          <a href="../">Home</a>
+          <a href="/">Home</a>
         </div>
         <div class="mode-switcher">
           <label for="mode-switcher">Color:</label>
@@ -29,7 +28,7 @@
           {% for (metadata, path) in articles %}
             {% if let Some(date) = metadata.publish_date %}
               <li>
-                <a href="../articles/{{ path }}" onmouseover="prefetch(this)">{{ metadata.title }}</a>
+                <a href="{{path}}" onmouseover="prefetch(this)">{{ metadata.title }}</a>
                 <time>{{ date.strftime("%B %d, %Y") }}</time>
               </li>
             {% endif %}
@@ -38,5 +37,5 @@
       </div>
     </main>
   </body>
-  <script src="../code.js"></script>
+  <script src="/public/code.js"></script>
 </html>
