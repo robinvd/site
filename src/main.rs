@@ -289,12 +289,13 @@ fn public_input_files() -> Result<Vec<PathBuf>, Error> {
         let entry = entry?;
         results.push(entry.path().to_owned());
     }
-    for entry in
-        fs::read_dir("./search/dist/assets").context("could not read search dist directory")?
-    {
-        let entry = entry?;
-        results.push(entry.path().to_owned());
-    }
+    // TODO search code
+    // for entry in
+    //     fs::read_dir("./search/dist/assets").context("could not read search dist directory")?
+    // {
+    //     let entry = entry?;
+    //     results.push(entry.path().to_owned());
+    // }
 
     Ok(results)
 }
