@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use anyhow::Error;
+use eyre::Error;
 use lol_html::{HtmlRewriter, element};
 
 pub fn rewrite_html(
@@ -13,7 +13,7 @@ pub fn rewrite_html(
             let public_item = url.strip_prefix("/public/").unwrap();
             let hashed_item = asset_map
                 .get(public_item)
-                .ok_or(anyhow::anyhow!("could not find asset: {public_item}"))?;
+                .ok_or(eyre::eyre!("could not find asset: {public_item}"))?;
             let new_ref = format!("{root_url}/public/{hashed_item}");
             return Ok(new_ref);
         } else if url.starts_with("/") {

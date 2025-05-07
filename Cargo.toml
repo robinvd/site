@@ -7,11 +7,11 @@ edition = "2024"
 cc="*"
 
 [dependencies]
-anyhow = "1.0.97"
 askama = {git= "https://github.com/askama-rs/askama", rev="3cf5d85"}
 base64ct = { version = "1.7.3", features = ["std"] }
 crossbeam-channel = "0.5.15"
 dashmap = "6.1.0"
+eyre = "0.6.12"
 jiff = { version = "0.2.4", features = ["serde"] }
 lol_html = "2.2.0"
 notify-debouncer-mini = "0.4.1"

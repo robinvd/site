@@ -5,26 +5,27 @@ use std::{
     time::Duration,
 };
 
-use anyhow::{Context, Error, bail};
+// use anyhow::{Context, Error, bail};
 use crossbeam_channel::Sender;
 use dashmap::{DashMap, Entry};
+use eyre::{Context, Error, Report, bail};
 use notify_debouncer_mini::{
     DebounceEventResult, Debouncer, new_debouncer,
     notify::{RecommendedWatcher, RecursiveMode},
 };
-use salsa::Accumulator;
+use salsa::{Accumulator, Setter};
 
 #[salsa::db]
 pub trait Db: salsa::Database {
-    fn input(&self, path: PathBuf) -> Result<File, Error>;
-    fn dir(&self, path: PathBuf) -> Result<Dir, Error>;
+    fn input(&self, path: PathBuf) -> Result<File, Report>;
+    fn dir(&self, path: PathBuf) -> Result<Dir, Report>;
 }
 
 #[salsa::accumulator]
 pub struct Diagnostic(pub String);
 
 impl Diagnostic {
-    pub fn push_error(db: &dyn Db, file: &Path, error: Error) {
+    pub fn push_error(db: &dyn Db, file: &Path, error: Report) {
         Diagnostic(format!(
             "Error in file {}: {:?}\n",
             file.file_name()
@@ -94,6 +95,38 @@ impl BlogDatabase {
             file_watcher: None,
         }
     }
+
+    pub fn reload_path(&mut self, path: &Path) -> Result<(), Error> {
+        let file = if let Some(file) = self.files.get(path) {
+            *file
+        } else {
+            // still reload parent as it might be a new file
+            if let Some(parent) = path.parent() {
+                self.reload_path(parent)?;
+            }
+            return Ok(());
+        };
+        match file {
+            FileItem::File(file) => {
+                // `path` has changed, so read it and update the contents to match.
+                // This creates a new revision and causes the incremental algorithm
+                // to kick in, just like any other update to a salsa input.
+                let contents = std::fs::read(path)
+                    .with_context(|| format!("Failed to read file {}", path.display()))?;
+                file.set_text(self).to(contents);
+                if let Some(parent) = path.parent() {
+                    self.reload_path(parent)?;
+                }
+            }
+            FileItem::Dir(dir) => {
+                let contents = fs::read_dir(&path)?
+                    .map(|entry| Ok(entry?.path().to_owned()))
+                    .collect::<Result<Vec<_>, Error>>()?;
+                dir.set_items(self).to(contents);
+            }
+        }
+        Ok(())
+    }
 }
 
 #[salsa::db]
@@ -110,7 +143,7 @@ impl salsa::Database for BlogDatabase {
 
 #[salsa::db]
 impl Db for BlogDatabase {
-    fn input(&self, path: PathBuf) -> Result<File, Error> {
+    fn input(&self, path: PathBuf) -> Result<File, Report> {
         let path = path
             .canonicalize()
             .with_context(|| format!("Failed to read {}", path.display()))?;

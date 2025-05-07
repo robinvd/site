@@ -5,9 +5,10 @@
 {% block content %}
   <ul>
     {% for (metadata, path) in articles %}
-      {% if let Some(_) = metadata.publish_date %}
+      {% if let Some(date) = metadata.publish_date %}
         <li>
           <a href="{{ path }}" onmouseover="prefetch(this)">{{ metadata.title }}</a>
+          <time>{{ date.strftime("%B %d, %Y") }}</time>
         </li>
       {% endif %}
     {% endfor %}

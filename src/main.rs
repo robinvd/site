@@ -1,11 +1,11 @@
-use anyhow::{Context, Error};
 use base64ct::{Base64UrlUnpadded, Encoding};
 use crossbeam_channel::unbounded;
-use db::{Db, Diagnostic, Dir, File, FileItem, Tag};
+use db::{Db, Diagnostic, Dir, File, Tag};
+use eyre::{Context, Error, Report};
 use html::rewrite_html;
-use salsa::Setter;
 use sha1::{Digest, Sha1};
 use std::{
+    cmp::Reverse,
     collections::HashMap,
     fs, io,
     path::{Path, PathBuf},
@@ -17,7 +17,6 @@ mod article;
 mod db;
 mod html;
 mod templates;
-mod utils;
 
 #[salsa::tracked]
 fn article_by_tag<'a>(db: &'a dyn Db, root: Dir) -> HashMap<Tag<'a>, Vec<File>> {
@@ -62,7 +61,7 @@ fn all_tags<'a>(db: &'a dyn Db, root: Dir) -> Vec<Tag<'a>> {
 fn compile_tag<'a>(db: &'a dyn Db, root: Dir, tag: Tag) -> String {
     let posts = tag_posts(db, root, tag);
 
-    let posts = posts
+    let mut posts = posts
         .into_iter()
         .map(|post| {
             let (_, metadata) = compile_article(db, post);
@@ -70,6 +69,7 @@ fn compile_tag<'a>(db: &'a dyn Db, root: Dir, tag: Tag) -> String {
             (metadata, url)
         })
         .collect::<Vec<_>>();
+    posts.sort_by_key(|item| Reverse(item.0.publish_date));
     let tag_html = templates::tags::render_tag_page(tag.name(db), &posts);
     let asset_map = compile_asset_map(db);
     let tag_html = rewrite_html("..", &asset_map, &tag_html).unwrap();
@@ -114,24 +114,41 @@ fn tag_url(db: &dyn Db, tag: Tag) -> String {
     format!("/tags/{}.html", tag.name(db))
 }
 
-fn output_article(db: &dyn Db, input: &Path, output_path: &Path) -> Result<(), Error> {
-    let file = db.input(input.to_path_buf())?;
+#[salsa::tracked]
+fn output_file<'a>(db: &'a dyn Db, data: &'a [u8], output_path: &'a Path) {
+    match std::fs::write(output_path, data) {
+        Ok(_) => {}
+        Err(err) => Diagnostic::push_error(
+            db,
+            output_path,
+            Report::from(err).wrap_err(format!(
+                "could not output to file {}",
+                output_path.display()
+            )),
+        ),
+    }
+}
+
+fn output_article(db: &dyn Db, input: &Path, output_path: &Path) {
+    let file = match db.input(input.to_path_buf()) {
+        Ok(file) => file,
+        Err(err) => {
+            Diagnostic::push_error(db, output_path, err);
+            return;
+        }
+    };
     let (html_file, _metadata) = compile_article(db, file);
     let input_path: PathBuf = file.path(db);
     let mut html_path = output_path.join(input_path.file_name().unwrap());
     html_path.set_extension("html");
 
-    std::fs::write(html_path, html_file).unwrap();
-    Ok(())
+    output_file(db, html_file.as_ref(), &html_path);
 }
 
 fn output_articles(db: &dyn Db, root_dir: Dir, output_path: &Path) -> Result<(), Error> {
     let article_output_path = output_path.join("articles");
     for input in all_articles(db, root_dir)? {
-        match output_article(db, input, &article_output_path) {
-            Ok(()) => {}
-            Err(e) => Diagnostic::push_error(db, input, e),
-        }
+        output_article(db, input, &article_output_path);
     }
     Ok(())
 }
@@ -226,26 +243,7 @@ fn main_watch() -> Result<(), Error> {
                     });
                 }
             };
-            let file = match db.files.get(&path) {
-                Some(file) => *file,
-                None => continue,
-            };
-            match file {
-                FileItem::File(file) => {
-                    // `path` has changed, so read it and update the contents to match.
-                    // This creates a new revision and causes the incremental algorithm
-                    // to kick in, just like any other update to a salsa input.
-                    let contents = std::fs::read(path)
-                        .with_context(|| format!("Failed to read file {}", event.path.display()))?;
-                    file.set_text(&mut db).to(contents);
-                }
-                FileItem::Dir(dir) => {
-                    let contents = fs::read_dir(&path)?
-                        .map(|entry| Ok(entry?.path().to_owned()))
-                        .collect::<Result<Vec<_>, Error>>()?;
-                    dir.set_items(&mut db).to(contents);
-                }
-            }
+            db.reload_path(&path)?;
         }
     }
 }
