@@ -1,6 +1,6 @@
 ---
 title: Aggregation on Information Retrieval (IR)
-publish_date: 2024-03-18
+# publish_date: 2024-03-18
 tags: [information-retrieval, aggregation]
 ---
 

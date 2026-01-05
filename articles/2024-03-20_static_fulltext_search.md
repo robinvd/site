@@ -1,6 +1,6 @@
 ---
 tags: [site, information-retrieval, bloom-filters]
-publish_date: 2025-03-20
+# publish_date: 2025-03-20
 title: Fulltext search for a static website
 ---
 I just started experimenting with this website and was looking for a small but interesting project to add. I recently read about using bit signatures for full-text search on the client side, so why not try that out?
