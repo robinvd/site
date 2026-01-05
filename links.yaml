@@ -1,0 +1,12 @@
+- title: "Links"
+  url: "https://matklad.github.io/2025/08/23/links.html"
+  notes: "Ive seen his 'links' page before, but this post finally made me add this page you're reading to the site. He only adds the title and link. But i think its more interesting to add some of my own thoughts to it as well. As a sort of micro blog!"
+  added: 2026-01-05
+- title: "AI Changes Everything"
+  url: "https://lucumr.pocoo.org/2025/6/4/changes/"
+  notes: "I often find Armins posts to be easy to read but also very profocative. This is one of his early AI posts and one that got be thinking deeply about future AI use in development."
+  added: 2025-06-06
+- title: "Lies we tell ourselves to keep using Golang"
+  url: "https://fasterthanli.me/articles/lies-we-tell-ourselves-to-keep-using-golang"
+  notes: "A series of very critical posts about serious flaws in go, from a language design perspective. While every language has subjective flaws, i think go is one where they went out of their way to make it objectively worse, many of these points listed in the article. A good read even if you like go."
+  added: 2022-06-10

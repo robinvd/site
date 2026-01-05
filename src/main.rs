@@ -12,10 +12,12 @@ use std::{
 };
 
 use article::{Metadata, render_article};
+use links::load_links;
 
 mod article;
 mod db;
 mod html;
+mod links;
 mod templates;
 
 #[salsa::tracked]
@@ -184,6 +186,22 @@ fn output_home(db: &dyn Db, root_dir: Dir, output_path: &Path) -> Result<(), Err
     Ok(())
 }
 
+fn compile_links(db: &dyn Db) -> Result<String, Error> {
+    let links = load_links(db)?;
+    let links_html = templates::links::render_links(&links);
+    let asset_map = compile_asset_map(db);
+    let links_html = rewrite_html(".", &asset_map, &links_html)
+        .context("could not rewrite links page")?;
+    Ok(links_html)
+}
+
+fn output_links(db: &dyn Db, output_path: &Path) -> Result<(), Error> {
+    let links_html = compile_links(db)?;
+    fs::write(output_path.join("links.html"), links_html)
+        .context("could not write links.html")?;
+    Ok(())
+}
+
 /// Computes and outputes the full output dir
 ///
 /// - articles (html + plain)
@@ -202,6 +220,9 @@ fn output_dir<'a>(db: &'a dyn Db, root_dir: Dir) {
         Diagnostic::push_error(db, Path::new(""), e);
     }
     if let Err(e) = output_home(db, root_dir, output_path) {
+        Diagnostic::push_error(db, Path::new(""), e);
+    }
+    if let Err(e) = output_links(db, output_path) {
         Diagnostic::push_error(db, Path::new(""), e);
     }
 }
